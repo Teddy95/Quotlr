@@ -3,10 +3,13 @@
  * Copyright © 2020
  */
 
+require('dotenv').config()
+
 // Include required packages
 import express from 'express'
 import expressSession from 'express-session'
 import bodyParser from 'body-parser'
+import tumblr from 'tumblr.js'
 
 // Get App configurations
 import config from '../config'
@@ -80,6 +83,8 @@ if (config.authentication) {
     app.get('/logout', logout)
 }
 
+console.log(process.env.TUMBLR_CONSUMER_KEY)
+
 // Include Routes / Views
 routes.forEach(route => {
     // Create route parameters array & push the route to it
@@ -95,25 +100,43 @@ routes.forEach(route => {
     // Push view or function to route parameters array
     if (typeof route.view !== 'undefined') {
         routeParameters.push(async (req, res) => {
-            res.setHeader("Content-Type", "text/html; charset=utf-8")
-            template.render({
-                $global: {
-                    title: route.title,
-                    view: route.view,
-                    route: route.route,
-                    path: config.path,
-                    params: req.params,
-                    query: req.query,
-                    serializedGlobals: {
-                        view: true,
-                        title: true,
-                        route: true,
-                        path: true,
-                        params: true,
-                        query: true
+            // Get quote from Tumblr
+            var client = tumblr.createClient({
+                consumer_key: process.env.TUMBLR_CONSUMER_KEY,
+                consumer_secret: process.env.TUMBLR_CONSUMER_SECRET,
+                token: process.env.TUMBLR_TOKEN,
+                token_secret: process.env.TUMBLR_TOKEN_SECRET
+            })
+
+            client.blogPosts('spacev7bes.tumblr.com', { type: 'quote', limit: 100 }, (err, data) => {
+                const post = data.posts[Math.floor(Math.random() * data.posts.length)]
+
+                res.setHeader("Content-Type", "text/html; charset=utf-8")
+                template.render({
+                    $global: {
+                        title: route.title,
+                        view: route.view,
+                        route: route.route,
+                        path: config.path,
+                        params: req.params,
+                        query: req.query,
+                        quote: post.text || post.summary,
+                        source: post.source,
+                        tags: post.tags,
+                        serializedGlobals: {
+                            view: true,
+                            title: true,
+                            route: true,
+                            path: true,
+                            params: true,
+                            query: true,
+                            quote: true,
+                            source: true,
+                            tags: true
+                        }
                     }
-                }
-            }, res)
+                }, res)
+            })
         })
     } else {
         routeParameters.push(route.function)

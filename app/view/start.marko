@@ -3,9 +3,54 @@
  * Copyright © 2019
  */
 
-$ console.log(out.global.user)
+import colorPalette from '../scripts/colorPalette'
 
-br
-div.blankslate
-	lang var="greeting"
-	example
+class {
+	onCreate () {
+		this.state = {
+			color: '#ffffff'
+		}
+	}
+
+	onMount () {
+		this.randomizeThemeColor()
+		$(this.getEl('frame')).css('background-color', this.state.color)
+		$(this.getEl('quote')).css('color', '#333333')
+
+		this.getEls('tag').forEach(tag => {
+			$(tag).css('background-color', this.state.color)
+		})
+	}
+
+	randomizeThemeColor () {
+		this.state.color = colorPalette[Math.floor(Math.random() * colorPalette.length)]
+	}
+
+	reloadPage () {
+		location.reload()
+	}
+}
+
+style {
+	.card-body {
+		text-align: center;
+	}
+
+	.badge {
+		padding: 7px;
+		margin: 3px;
+	}
+}
+
+div.frame.d-flex.flex-column.justify-content-center key="frame"
+	div.d-flex.justify-content-center
+		div
+			div.card style="width: 32rem;"
+				<!-- img.card-img-top src="..." alt="..." -->
+				div.card-body
+					h2.card-text key="quote" -- ${out.global.quote}
+					br
+					p
+						for|tag, index| of=out.global.tags
+							span.badge.badge-secondary key="tag[]" -- #${tag}
+					button.btn.btn-outline-dark.btn-sm type="button" on-click('reloadPage') -- <i.fas.fa-sync></i> Reload
