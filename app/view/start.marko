@@ -6,20 +6,27 @@
 import colorPalette from '../scripts/colorPalette'
 
 class {
-	onCreate () {
+	onCreate (input, out) {
 		this.state = {
-			color: '#ffffff'
+			color: '#ffffff',
+			quote: out.global.quote
 		}
 	}
 
 	onMount () {
 		this.randomizeThemeColor()
 		$(this.getEl('frame')).css('background-color', this.state.color)
-		$(this.getEl('quote')).css('color', '#333333')
+		// $(this.getEl('quote')).css('color', '#333333')
 
 		this.getEls('tag').forEach(tag => {
 			$(tag).css('background-color', this.state.color)
 		})
+
+		this.getEl('quote').innerHTML = this.state.quote
+
+		if (this.getEl('quote').firstChild.localName === 'p') {
+			this.getEl('quote').firstChild.innerHTML = this.getEl('quote').firstChild.innerHTML.replace(/:|;/g, '')
+		}
 	}
 
 	randomizeThemeColor () {
@@ -31,24 +38,12 @@ class {
 	}
 }
 
-style {
-	.card-body {
-		text-align: center;
-	}
-
-	.badge {
-		padding: 7px;
-		margin: 3px;
-	}
-}
-
 div.frame.d-flex.flex-column.justify-content-center key="frame"
 	div.d-flex.justify-content-center
 		div
-			div.card style="width: 32rem;"
-				<!-- img.card-img-top src="..." alt="..." -->
+			div.card style="width: 35rem;"
 				div.card-body
-					h2.card-text key="quote" -- ${out.global.quote}
+					div.quote key="quote"
 					br
 					p
 						for|tag, index| of=out.global.tags

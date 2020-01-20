@@ -3,8 +3,6 @@
  * Copyright © 2020
  */
 
-require('dotenv').config()
-
 // Include required packages
 import express from 'express'
 import expressSession from 'express-session'
@@ -83,8 +81,6 @@ if (config.authentication) {
     app.get('/logout', logout)
 }
 
-console.log(process.env.TUMBLR_CONSUMER_KEY)
-
 // Include Routes / Views
 routes.forEach(route => {
     // Create route parameters array & push the route to it
@@ -110,6 +106,7 @@ routes.forEach(route => {
 
             client.blogPosts('spacev7bes.tumblr.com', { type: 'quote', limit: 100 }, (err, data) => {
                 const post = data.posts[Math.floor(Math.random() * data.posts.length)]
+                console.log(post)
 
                 res.setHeader("Content-Type", "text/html; charset=utf-8")
                 template.render({
@@ -120,7 +117,7 @@ routes.forEach(route => {
                         path: config.path,
                         params: req.params,
                         query: req.query,
-                        quote: post.text || post.summary,
+                        quote: post.body || post.text || post.summary,
                         source: post.source,
                         tags: post.tags,
                         serializedGlobals: {
