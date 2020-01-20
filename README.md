@@ -21,4 +21,4 @@ $ npm run build
 $ npm run start
 ```
 
-Got to <http://localhost:8080>
+Go to <http://localhost:8080>
