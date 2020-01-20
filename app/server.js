@@ -5,26 +5,16 @@
 
 // Include required packages
 import express from 'express'
-import expressSession from 'express-session'
-import bodyParser from 'body-parser'
 import tumblr from 'tumblr.js'
 
 // Get App configurations
 import config from '../config'
-
-// Get authentication methods
-import authMethods from './authentication'
 
 // Get App routes
 import routes from './routes'
 
 // Get template
 import template from './template.marko'
-
-// Import authentication functions if it is enabled
-if (config.authentication) {
-    var { passport, checkAuthentication, logout } = require('./lib/passport')
-}
 
 // Create Express App
 var app = express()
@@ -55,43 +45,16 @@ if (isDev) {
     }))
 }
 
-// Apply server middleware
-app.use(expressSession({ secret: config.name, resave: true, saveUninitialized: false }))
-app.use(bodyParser.urlencoded({ extended : true }))
-
-if (config.authentication) {
-    app.use(passport.initialize())
-    app.use(passport.session())
-}
-
 // Grant access for static files
 app.use(config.path + '/assets', express.static('dist'), (req, res, next) => {
     next()
 })
-
-// Add passport authentication routes
-if (config.authentication) {
-    for (var authType in authMethods) {
-        app.get(`/auth/${authType}/login`, passport.authenticate(authType))
-        app[authMethods[authType].callbackHttpMethod](`/auth/${authType}/callback`, passport.authenticate(authType, config.passport), (req, res) => {
-            // res.redirect('/')
-        })
-    }
-
-    app.get('/logout', logout)
-}
 
 // Include Routes / Views
 routes.forEach(route => {
     // Create route parameters array & push the route to it
     var routeParameters = []
     routeParameters.push(config.path + route.route)
-
-    // Check if authentication is required for this route
-    if (config.authentication && route.authentication) {
-        // Push authentication middleware to route parameters array
-        routeParameters.push(checkAuthentication)
-    }
 
     // Push view or function to route parameters array
     if (typeof route.view !== 'undefined') {
@@ -106,7 +69,6 @@ routes.forEach(route => {
 
             client.blogPosts('spacev7bes.tumblr.com', { type: 'quote', limit: 100 }, (err, data) => {
                 const post = data.posts[Math.floor(Math.random() * data.posts.length)]
-                console.log(post)
 
                 res.setHeader("Content-Type", "text/html; charset=utf-8")
                 template.render({
